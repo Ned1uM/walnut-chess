@@ -1,0 +1,318 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111a17">
+  <meta name="description" content="胡桃木棋盘上的 3D 国际象棋。挑战电脑、保存棋谱、复盘对局，在战术本里练习经典走法。">
+  <title>胡桃棋室 · 国际象棋</title>
+  <link rel="icon" type="image/png" href="./icon.png">
+  <link rel="stylesheet" href="./style.css">
+  <script type="module" src="./app.mjs"></script>
+</head>
+<body>
+  <svg class="symbol-bank" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="i-knight" viewBox="0 0 24 24"><path d="M5.5 20h13m-12-2.5c-.5-3.6 1.6-5.8 4.4-7.3l-3.5 1.1-2-1.9 4.8-4.4.4-2.3 2.2 1.7c4.1 1.2 6.1 4.8 5.3 10.1l-.4 3H6.5Z"/><path d="M11.2 7.7h.1"/></symbol>
+    <symbol id="i-volume" viewBox="0 0 24 24"><path d="M3 9.5h4L12 5v14l-5-4.5H3zM15.5 9a4.1 4.1 0 0 1 0 6m2.8-8.6a7.7 7.7 0 0 1 0 11.2"/></symbol>
+    <symbol id="i-muted" viewBox="0 0 24 24"><path d="M3 9.5h4L12 5v14l-5-4.5H3zM16 10l5 5m0-5-5 5"/></symbol>
+    <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.5c0-1.3 1-2.2 2.4-2.2 1.5 0 2.5.9 2.5 2.2 0 1.7-2.5 2-2.5 3.7m0 3.3h.01"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-cube" viewBox="0 0 24 24"><path d="m12 3 8 4.5v9L12 21l-8-4.5v-9L12 3Zm-8 4.5 8 4.5 8-4.5M12 12v9"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M12 4v16M4 12h16"/></symbol>
+    <symbol id="i-flip" viewBox="0 0 24 24"><path d="M4.5 9a8 8 0 0 1 13-3L20 8m0 0V3.5M20 8h-4.5m4 7a8 8 0 0 1-13 3L4 16m0 0v4.5M4 16h4.5"/></symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 6 4 11l5 5m-5-5h10a5 5 0 0 1 5 5v2"/></symbol>
+    <symbol id="i-analysis" viewBox="0 0 24 24"><path d="M12 3.5c.6 5 2.5 6.9 7.5 7.5-5 .6-6.9 2.5-7.5 7.5-.6-5-2.5-6.9-7.5-7.5 5-.6 6.9-2.5 7.5-7.5ZM19.5 15v4.5m-2.25-2.25h4.5"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="11" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 6c-2.8-2.1-5.4-2.3-9-1.6v13.2c3.6-.7 6.2-.5 9 1.6 2.8-2.1 5.4-2.3 9-1.6V4.4c-3.6-.7-6.2-.5-9 1.6v13.2"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.2"/><path d="M5.8 19.5V18a5 5 0 0 1 5-5h2.4a5 5 0 0 1 5 5v1.5"/></symbol>
+    <symbol id="i-computer" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="11" rx="2"/><path d="M12 16v3.5m-4 0h8"/></symbol>
+  </svg>
+
+  <header class="topbar">
+    <div class="shell topbar-inner">
+      <div class="brand">
+        <span class="brand-mark"><svg class="icon"><use href="#i-knight"/></svg></span>
+        <span>胡桃棋室</span>
+      </div>
+      <nav class="section-nav" aria-label="棋室栏目">
+        <a href="#play" data-section="play" aria-current="page">对弈</a>
+        <a href="#records" data-section="records">棋谱本</a>
+        <a href="#tactics" data-section="tactics">战术本</a>
+      </nav>
+      <div class="header-actions">
+        <button class="button ghost" id="sound" type="button" aria-label="棋子音效" aria-pressed="false" title="棋子音效"><svg class="icon"><use href="#i-muted"/></svg><span>音效</span></button>
+        <button class="button ghost" id="rules" type="button"><svg class="icon"><use href="#i-help"/></svg><span>棋规</span></button>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell main">
+    <div id="screen-play">
+    <div class="page-heading">
+      <h1>国际象棋</h1>
+      <button class="button primary" id="new-game" type="button"><svg class="icon"><use href="#i-plus"/></svg>新对局</button>
+    </div>
+
+    <div class="layout">
+      <section class="board-panel" aria-label="棋盘">
+        <div class="board-stage" id="board-stage">
+          <div class="corner corner-tl" aria-hidden="true"></div><div class="corner corner-tr" aria-hidden="true"></div>
+          <div class="corner corner-bl" aria-hidden="true"></div><div class="corner corner-br" aria-hidden="true"></div>
+          <p class="sr-only" id="board-help">点击或拖动棋子。用方向键移动焦点，用空格或回车选择，用 Escape 取消选择。</p>
+          <canvas id="board-3d" tabindex="0" aria-label="立体棋盘" aria-describedby="board-help" hidden></canvas>
+          <div id="flat-wrap" class="flat-wrap">
+            <div id="board-2d" class="flat-board" role="group" aria-label="俯视棋盘" aria-describedby="board-help"></div>
+            <div class="flat-files" id="flat-files" aria-hidden="true"></div>
+            <div class="flat-ranks" id="flat-ranks" aria-hidden="true"></div>
+          </div>
+          <span class="sr-only" id="square-announcement" aria-live="polite"></span>
+        </div>
+        <div class="board-activity" id="board-activity" hidden></div>
+        <section class="board-review" id="board-review" aria-label="棋盘回放" hidden>
+          <div class="review-info">
+            <div role="status" aria-live="polite"><strong id="review-title">棋谱回放</strong><p id="review-caption"></p></div>
+            <button class="button ghost" id="analyze-review" type="button"><svg class="icon"><use href="#i-analysis"/></svg>分析此局面</button>
+          </div>
+          <p class="review-note" id="review-note" hidden></p>
+          <div class="review-actions">
+            <button class="button secondary" id="review-previous" type="button">上一步</button>
+            <button class="button secondary" id="review-next" type="button">下一步</button>
+            <button class="button ghost" id="review-return" type="button">回到最新一步</button>
+          </div>
+        </section>
+        <div class="board-toolbar">
+          <div class="segments" role="group" aria-label="棋盘视角">
+            <button class="button segment" id="view-3d" type="button" aria-pressed="true"><svg class="icon"><use href="#i-cube"/></svg>立体</button>
+            <button class="button segment" id="view-2d" type="button" aria-pressed="false"><svg class="icon"><use href="#i-grid"/></svg>俯视</button>
+          </div>
+          <span class="board-help-text" id="board-tip">点击或拖动棋子</span>
+          <button class="button ghost flip" id="flip" type="button"><svg class="icon"><use href="#i-flip"/></svg>翻转棋盘</button>
+        </div>
+      </section>
+
+      <aside class="sidebar" aria-label="对局信息">
+        <section class="card match-card" aria-labelledby="match-heading">
+          <div class="card-heading"><h2 id="match-heading">对局</h2><span class="mode" id="mode-label">人机 · 标准</span></div>
+          <div class="players">
+            <div class="player" id="player-top">
+              <span class="player-avatar" aria-hidden="true"></span>
+              <div class="player-labels"><strong>电脑</strong><div class="player-details"><span class="side-name">黑方</span><span class="captured"></span></div></div>
+              <span class="turn-tag" hidden>行棋中</span>
+            </div>
+            <div class="player" id="player-bottom">
+              <span class="player-avatar" aria-hidden="true"></span>
+              <div class="player-labels"><strong>你</strong><div class="player-details"><span class="side-name">白方</span><span class="captured"></span></div></div>
+              <span class="turn-tag">行棋中</span>
+            </div>
+          </div>
+          <div id="match-status-slot">
+            <div class="match-status" id="match-status" role="status" aria-live="polite">
+              <span class="turn-light" aria-hidden="true"></span>
+              <div><strong id="turn-label">轮到你了</strong><p id="activity">白方先行</p></div>
+            </div>
+          </div>
+          <div class="match-actions" id="match-actions">
+            <button class="button secondary" id="undo" type="button" disabled><svg class="icon"><use href="#i-undo"/></svg>悔棋</button>
+            <button class="button secondary analysis-button" id="analysis" type="button"><svg class="icon"><use href="#i-analysis"/></svg>局势分析</button>
+          </div>
+        </section>
+
+        <section class="card history-card" aria-labelledby="history-heading">
+          <div class="card-heading">
+            <h2 id="history-heading">棋谱</h2>
+            <div class="history-tools">
+              <button class="button secondary save-record" id="save-record" type="button" disabled><svg class="icon"><use href="#i-book"/></svg><span>保存棋谱</span></button>
+              <button class="button ghost copy" id="copy" type="button" disabled title="复制 PGN 棋谱"><svg class="icon"><use href="#i-copy"/></svg><span>复制</span></button>
+            </div>
+          </div>
+          <div class="history-empty" id="history-empty"><svg class="icon"><use href="#i-book"/></svg><span>等待第一步</span></div>
+          <div class="score-sheet" id="score-sheet" hidden>
+            <div class="score-head" aria-hidden="true"><span></span><span>白方</span><span>黑方</span></div>
+            <ol class="score-list" id="move-list" aria-label="对局走法"></ol>
+            <button class="button ghost review-open" id="review-open" type="button"><svg class="icon"><use href="#i-book"/></svg>回放棋谱</button>
+          </div>
+        </section>
+      </aside>
+    </div>
+    </div>
+
+    <section id="screen-records" aria-labelledby="records-heading" hidden>
+      <div class="page-heading book-page-heading">
+        <div><h1 id="records-heading">棋谱本</h1><p class="book-page-meta" id="record-count">同步到你的账号</p></div>
+      </div>
+      <div class="card book-empty" id="notebook-empty">
+        <svg class="icon" aria-hidden="true"><use href="#i-book"/></svg>
+        <h2>还没有保存的棋谱</h2>
+        <p>对弈时点「保存棋谱」，就可以在这里回放和分析。</p>
+        <a class="button primary" href="#play">回到棋盘</a>
+      </div>
+      <div class="book-layout" id="notebook-layout" hidden>
+        <aside class="card book-index" aria-label="已保存的对局">
+          <h2>已保存的对局</h2>
+          <div class="book-list" id="record-list"></div>
+        </aside>
+        <div class="book-body">
+          <section class="card book-detail" id="record-detail" aria-labelledby="record-title">
+            <div class="book-detail-heading">
+              <div><h2 id="record-title"></h2><p class="book-meta" id="record-meta"></p></div>
+              <div class="book-detail-actions">
+                <button type="button" class="button ghost" id="record-copy"><svg class="icon"><use href="#i-copy"/></svg>复制棋谱</button>
+                <button type="button" class="button primary" id="record-analyze"><svg class="icon"><use href="#i-analysis"/></svg><span>AI 复盘</span></button>
+              </div>
+            </div>
+            <div class="book-study">
+              <div class="book-board-wrap">
+                <div id="record-board" class="study-board" role="img" aria-label="复盘棋盘" tabindex="0"></div>
+                <p class="study-caption" id="record-position" role="status"></p>
+                <div class="study-controls">
+                  <button type="button" class="button secondary" id="record-first">开局</button>
+                  <button type="button" class="button secondary" id="record-prev">上一步</button>
+                  <button type="button" class="button secondary" id="record-next">下一步</button>
+                  <button type="button" class="button secondary" id="record-last">最后一步</button>
+                </div>
+              </div>
+              <div class="book-movelist">
+                <div class="study-score" id="record-plies" aria-label="已保存的棋谱走法"></div>
+                <p class="book-hint" id="record-hint" hidden></p>
+              </div>
+            </div>
+          </section>
+          <section class="card book-report" id="record-report" aria-labelledby="report-title" hidden>
+            <div class="book-detail-heading">
+              <div><h2 id="report-title">AI 复盘</h2><p class="book-meta" id="report-status" role="status"></p></div>
+              <button type="button" class="button ghost" id="report-cancel" hidden>停止分析</button>
+            </div>
+            <progress id="report-progress" aria-label="全局分析进度" hidden></progress>
+            <div id="report-ready" hidden>
+              <p id="report-summary"></p>
+              <figure class="report-chart">
+                <figcaption><strong>局势走势</strong><span>上方偏白，下方偏黑</span></figcaption>
+                <canvas id="report-chart" role="img" aria-label="以白方为正值的局势评估曲线"></canvas>
+              </figure>
+              <div class="report-content">
+                <div id="report-moments-wrap"><h3>关键走法</h3><div class="report-moments" id="report-moments"></div></div>
+                <div class="report-advice"><h3>下次可以留意</h3><ul id="report-advice"></ul></div>
+              </div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <section id="screen-tactics" aria-labelledby="tactics-heading" hidden>
+      <div class="page-heading book-page-heading">
+        <div><h1 id="tactics-heading">战术本</h1><p class="book-page-meta" id="lesson-count"></p></div>
+      </div>
+      <div class="book-layout">
+        <aside class="card book-index" aria-label="战术与开局目录">
+          <div class="segments lesson-filters" role="group" aria-label="条目类型">
+            <button type="button" class="button segment" data-lesson-kind="tactic" aria-pressed="true">经典战术</button>
+            <button type="button" class="button segment" data-lesson-kind="opening" aria-pressed="false">常见开局</button>
+          </div>
+          <div class="book-list" id="lesson-list"></div>
+        </aside>
+        <section class="card book-detail" aria-labelledby="lesson-title">
+          <div class="book-detail-heading">
+            <div><h2 id="lesson-title"></h2><p class="book-meta" id="lesson-meta"></p></div>
+          </div>
+          <div class="book-study">
+            <div class="book-board-wrap">
+              <div id="lesson-board" class="study-board" role="img" aria-label="战术示范棋盘" tabindex="0"></div>
+              <p id="lesson-position" class="study-caption" role="status"></p>
+              <div class="study-controls">
+                <button type="button" class="button secondary" id="lesson-first">从头看</button>
+                <button type="button" class="button secondary" id="lesson-prev">上一步</button>
+                <button type="button" class="button primary" id="lesson-next">下一步</button>
+              </div>
+            </div>
+            <div class="lesson-text">
+              <p id="lesson-intro"></p>
+              <div class="lesson-note"><h3>这一步的意思</h3><p id="lesson-note"></p></div>
+              <div class="study-score" id="lesson-plies" aria-label="示范走法"></div>
+              <a class="lesson-source" id="lesson-source" href="https://lichess.org/practice" target="_blank" rel="noopener noreferrer">Lichess 参考</a>
+            </div>
+          </div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="save-dialog" aria-labelledby="save-heading">
+    <div class="dialog-head"><h2 id="save-heading">保存棋谱</h2><button class="button ghost icon-button" data-close type="button" aria-label="关闭保存窗口"><svg class="icon"><use href="#i-close"/></svg></button></div>
+    <form id="save-form">
+      <label class="book-input-label" for="record-name">棋谱名称</label>
+      <input id="record-name" class="book-input" name="title" type="text" maxlength="60" required>
+      <p class="form-note" id="save-info"></p>
+      <button type="submit" class="button primary full">保存到棋谱本</button>
+    </form>
+  </dialog>
+
+  <dialog id="new-dialog" aria-labelledby="new-heading">
+    <div class="dialog-head"><h2 id="new-heading">新对局</h2><button class="button ghost icon-button" data-close type="button" aria-label="关闭"><svg class="icon"><use href="#i-close"/></svg></button></div>
+    <form id="new-form">
+      <fieldset><legend>对弈模式</legend><div class="choices">
+        <label><input name="mode" type="radio" value="computer" checked><span><svg class="icon"><use href="#i-computer"/></svg>挑战电脑</span></label>
+        <label><input name="mode" type="radio" value="local"><span><svg class="icon"><use href="#i-user"/></svg>同屏双人</span></label>
+      </div></fieldset>
+      <div id="computer-settings">
+        <fieldset><legend>你的执棋颜色</legend><div class="choices">
+          <label><input name="color" type="radio" value="w" checked><span><i class="color-swatch white"></i>白方</span></label>
+          <label><input name="color" type="radio" value="b"><span><i class="color-swatch black"></i>黑方</span></label>
+        </div></fieldset>
+        <fieldset><legend>电脑难度</legend><div class="choices difficulty-choices">
+          <label><input name="level" type="radio" value="easy"><span>入门</span></label>
+          <label><input name="level" type="radio" value="normal" checked><span>标准</span></label>
+          <label><input name="level" type="radio" value="hard"><span>进阶</span></label>
+          <label><input name="level" type="radio" value="expert"><span>专家</span></label>
+        </div></fieldset>
+      </div>
+      <p class="form-note" id="replace-note" hidden>开始后会替换当前对局。</p>
+      <button class="button primary full" type="submit">开始对局</button>
+    </form>
+  </dialog>
+
+  <dialog id="promotion-dialog" aria-labelledby="promotion-heading">
+    <div class="dialog-head"><h2 id="promotion-heading">兵的升变</h2><button class="button ghost icon-button" data-close type="button" aria-label="取消升变"><svg class="icon"><use href="#i-close"/></svg></button></div>
+    <p>选择到达底线的兵要变成哪枚棋子。</p>
+    <div class="promotion-options" id="promotion-options"></div>
+  </dialog>
+
+  <dialog id="analysis-dialog" aria-labelledby="analysis-heading">
+    <div class="dialog-head"><h2 id="analysis-heading">局势分析</h2><button class="button ghost icon-button" data-close type="button" aria-label="关闭分析"><svg class="icon"><use href="#i-close"/></svg></button></div>
+    <div class="analysis-loading" id="analysis-loading" role="status"><span class="spinner"></span>正在分析当前棋局…</div>
+    <p id="analysis-message" class="form-note" role="status" hidden></p>
+    <div id="analysis-result" hidden>
+      <div class="evaluation"><span id="evaluation-label"></span><strong id="evaluation-score"></strong></div>
+      <div class="eval-track" aria-hidden="true"><span id="eval-white"></span></div>
+      <div class="eval-key" aria-hidden="true"><span>白方</span><span>黑方</span></div>
+      <div class="recommendation"><div><span>推荐走法</span><strong id="recommendation-san"></strong></div><p id="recommendation-move"></p><p class="reason" id="recommendation-reason"></p></div>
+      <div class="recommendation response" id="response" hidden><div><span>预计对方应对</span><strong id="response-san"></strong></div><p id="response-move"></p><p class="reason" id="response-reason" hidden></p></div>
+      <p class="form-note" id="analysis-depth"></p>
+      <div class="analysis-actions">
+        <button class="button secondary" id="show-hint" type="button">在棋盘上标出</button>
+        <button class="button primary" id="show-variation" type="button">在棋盘上演示</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="rules-dialog" aria-labelledby="rules-heading">
+    <div class="dialog-head"><h2 id="rules-heading">棋规</h2><button class="button ghost icon-button" data-close type="button" aria-label="关闭棋规"><svg class="icon"><use href="#i-close"/></svg></button></div>
+    <div class="rules-content">
+      <p>白方先行，双方轮流走一步。点击棋子后，棋盘会标出可走的位置。无法解除将军的一方被将死，对方获胜。</p>
+      <dl>
+        <div><dt>王</dt><dd>向任意方向走一格，不能走进受攻击的格子。</dd></div>
+        <div><dt>后</dt><dd>横、竖或斜走任意格。</dd></div>
+        <div><dt>车</dt><dd>横走或竖走任意格。</dd></div>
+        <div><dt>象</dt><dd>斜走任意格。</dd></div>
+        <div><dt>马</dt><dd>走「日」字，可以跳过其他棋子。</dd></div>
+        <div><dt>兵</dt><dd>直走一格，首步可走两格。斜前方一格吃子，到对面底线时升变。</dd></div>
+      </dl>
+      <p><strong>特殊走法</strong>　王车易位时将王移两格。对方的兵从初始格走两格并与你的兵并排时，紧接的一步可以吃过路兵。可走位置会自动标出。</p>
+      <p><strong>和棋</strong>　无子可走且未被将军、子力不足、同一局面出现三次，或连续 50 回合没有吃子与兵移动时，本站自动判和。</p>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+</body>
+</html>
