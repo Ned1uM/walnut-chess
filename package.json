@@ -1,1 +1,1 @@
-{"private":true,"type":"module","scripts":{"dev":"node scripts/dev-preview.mjs","build":"node scripts/build.mjs","test":"node tests/notebook.test.mjs"}}
+{"private":true,"type":"module","scripts":{"dev":"node scripts/dev-preview.mjs","build":"node scripts/build.mjs","pretest":"node scripts/build.mjs","test":"node tests/notebook.test.mjs && node tests/pgn.test.mjs"}}

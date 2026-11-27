@@ -24,12 +24,30 @@ export function describeMove(move) {
   return `${piece} ${target}`;
 }
 
-export async function copyPgn(game, { mode, color, result = '*', title = 'Walnut Chess Room' }, showToast) {
+function makePgn(game, { mode, color, result = '*', title = 'Walnut Chess Room' }) {
   game.setHeader('White', mode === 'local' ? 'White' : color === 'w' ? 'Player' : 'Computer');
   game.setHeader('Black', mode === 'local' ? 'Black' : color === 'b' ? 'Player' : 'Computer');
   game.setHeader('Event', title.replace(/["\\\r\n]/g, ' '));
   game.setHeader('Result', result);
-  const pgn = game.pgn();
+  return game.pgn();
+}
+export function downloadPgn(game, options, showToast) {
+  const pgn = makePgn(game, options);
+  savePgn(pgn, showToast);
+}
+function savePgn(pgn, showToast) {
+  const url = URL.createObjectURL(new Blob([pgn], { type: 'application/x-chess-pgn' }));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'walnut-chess.pgn';
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  showToast('已发起 PGN 下载。');
+}
+export async function copyPgn(game, options, showToast) {
+  const pgn = makePgn(game, options);
   try {
     await navigator.clipboard.writeText(pgn);
     showToast('已复制 PGN 棋谱。');
@@ -49,11 +67,5 @@ export async function copyPgn(game, { mode, color, result = '*', title = 'Walnut
       return;
     }
   }
-  const url = URL.createObjectURL(new Blob([pgn], { type: 'application/x-chess-pgn' }));
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = 'walnut-chess.pgn';
-  link.click();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-  showToast('已导出 PGN 棋谱。');
+  savePgn(pgn, showToast);
 }

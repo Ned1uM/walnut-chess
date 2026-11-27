@@ -124,6 +124,7 @@
             <div class="history-tools">
               <button class="button secondary save-record" id="save-record" type="button" disabled><svg class="icon"><use href="#i-book"/></svg><span>保存棋谱</span></button>
               <button class="button ghost copy" id="copy" type="button" disabled title="复制 PGN 棋谱"><svg class="icon"><use href="#i-copy"/></svg><span>复制</span></button>
+              <button class="button ghost" id="download-pgn" type="button" disabled>下载 PGN</button>
             </div>
           </div>
           <div class="history-empty" id="history-empty"><svg class="icon"><use href="#i-book"/></svg><span>等待第一步</span></div>
@@ -158,6 +159,7 @@
               <div><h2 id="record-title"></h2><p class="book-meta" id="record-meta"></p></div>
               <div class="book-detail-actions">
                 <button type="button" class="button ghost" id="record-copy"><svg class="icon"><use href="#i-copy"/></svg>复制棋谱</button>
+                <button type="button" class="button ghost" id="record-download">下载 PGN</button>
                 <button type="button" class="button primary" id="record-analyze"><svg class="icon"><use href="#i-analysis"/></svg><span>AI 复盘</span></button>
               </div>
             </div>
@@ -268,7 +270,8 @@
         </div></fieldset>
       </div>
       <p class="form-note" id="replace-note" hidden>开始后会替换当前对局。</p>
-      <button class="button primary full" type="submit">开始对局</button>
+      <div id="replace-confirm" hidden><p class="form-note" role="alert">当前对局有尚未保存的走法。开始新对局后将无法恢复，确定继续吗？</p><button class="button secondary full" id="replace-cancel" type="button">取消</button></div>
+      <button class="button primary full" id="start-match" type="submit">开始对局</button>
     </form>
   </dialog>
 

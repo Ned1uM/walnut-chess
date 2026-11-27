@@ -1,6 +1,6 @@
 import { Chess } from './vendor/chess.mjs';
 import { findSavedPiece } from './tactics.mjs';
-import { files, ranks, names, sideNames, colors, levels, imageFor, describeMove, copyPgn } from './chess-ui.mjs';
+import { files, ranks, names, sideNames, colors, levels, imageFor, describeMove, copyPgn, downloadPgn } from './chess-ui.mjs';
 import { initNotebook } from './notebook.mjs';
 import { initTacticsBook } from './tactics-book.mjs';
 
@@ -272,6 +272,7 @@ function renderHistory(rebuild = false) {
     el('history-empty').hidden = Boolean(history.length);
     el('score-sheet').hidden = !history.length;
     el('copy').disabled = !history.length;
+    el('download-pgn').disabled = !history.length;
     el('save-record').disabled = !history.length;
     const focusPly = list.contains(document.activeElement) ? document.activeElement.dataset.ply : null;
     const rows = document.createDocumentFragment();
@@ -776,12 +777,20 @@ el('new-game').addEventListener('click', () => {
   newForm.elements.color.value = settings.color;
   newForm.elements.level.value = settings.level;
   el('replace-note').hidden = !history.length;
+  el('replace-confirm').hidden = true;
+  el('start-match').textContent = '开始对局';
   updateNewForm();
   newDialog.showModal();
 });
 newForm.addEventListener('change', updateNewForm);
 newForm.addEventListener('submit', event => {
   event.preventDefault();
+  if (history.length && !notebook.isSaved(matchId, history.map(move => move.san)) && el('replace-confirm').hidden) {
+    el('replace-confirm').hidden = false;
+    el('start-match').textContent = '继续开始新对局';
+    el('replace-cancel').focus();
+    return;
+  }
   stopWork();
   const form = new FormData(newForm);
   const mode = form.get('mode');
@@ -800,6 +809,11 @@ newForm.addEventListener('submit', event => {
   syncPosition();
   save();
   queueComputer();
+});
+el('replace-cancel').addEventListener('click', () => {
+  el('replace-confirm').hidden = true;
+  el('start-match').textContent = '开始对局';
+  newDialog.close();
 });
 
 function reasonFor(move, before, after, choice) {
@@ -992,6 +1006,7 @@ el('rules').addEventListener('click', () => {
 el('copy').addEventListener('click', () => {
   void copyPgn(game, { ...settings, result: result?.pgn ?? '*' }, showToast);
 });
+el('download-pgn').addEventListener('click', () => downloadPgn(game, { ...settings, result: result?.pgn ?? '*' }, showToast));
 el('undo').addEventListener('click', undo);
 el('view-3d').addEventListener('click', () => { void setView('3d'); });
 el('view-2d').addEventListener('click', () => { void setView('2d'); });

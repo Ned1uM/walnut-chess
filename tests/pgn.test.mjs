@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';
+import { Chess } from '../public/vendor/chess.mjs';
+import { downloadPgn } from '../public/chess-ui.mjs';
+const game = new Chess(); game.move('e4'); game.move('e5');
+let blob, clicked = false, removed = false, message;
+URL.createObjectURL = value => { blob = value; return 'blob:test'; };
+URL.revokeObjectURL = () => {};
+globalThis.document = { body: { append() {} }, createElement: () => ({ click() { clicked = true; }, remove() { removed = true; } }) };
+downloadPgn(game, { mode: 'local', color: 'w', result: '*' }, text => { message = text; });
+const text = await blob.text();
+assert.match(text, /\[Event "Walnut Chess Room"\]/);
+assert.match(text, /\[White "White"\]/);
+assert.match(text, /1\. e4 e5/);
+assert.ok(clicked && removed);
+assert.equal(message, '已发起 PGN 下载。');
+console.log('PGN download contains headers and moves.');

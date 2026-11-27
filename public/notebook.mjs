@@ -1,4 +1,4 @@
-import { copyPgn, levels, sideNames } from './chess-ui.mjs';
+import { copyPgn, downloadPgn, levels, sideNames } from './chess-ui.mjs';
 import { makeLine, Study } from './study.mjs';
 import { drawReportChart, renderReport } from './report-view.mjs';
 import { createNotebookStore, localRecords } from './notebook-store.mjs';
@@ -57,8 +57,13 @@ export function initNotebook(snapshot, toast) {
         el('record-count').textContent = `已保存 ${records.length} 局 · 已同步到账号`;
         if (result.partialImport) {
           el('record-count').textContent += ' · 部分旧棋谱无法导入，仍保留在此浏览器';
-          toast('部分旧棋谱无法导入，原数据仍保留在此浏览器。');
-        } else if (result.pending) toast('有尚未同步的棋谱保存在此浏览器，请重新保存该局。');
+          if (!result.volatile) toast('部分旧棋谱无法导入，原数据仍保留在此浏览器。');
+        }
+        if (result.volatile) {
+          el('record-count').textContent += ' · 有棋谱仅保留在当前页面，尚未同步';
+          toast('有棋谱尚未同步，仅保留在当前页面；请勿刷新，联网后重试。');
+        }
+        else if (result.pending && !result.partialImport) toast('有尚未同步的棋谱保存在此浏览器，请重新保存该局。');
         render(preferred);
         return true;
       } catch {
@@ -181,10 +186,10 @@ export function initNotebook(snapshot, toast) {
             const updated = { ...entry, report };
             await store.save(updated);
             await refresh(id);
-          } catch {
-            // The pending copy remains in browser storage until it can be synced safely.
-            errors.set(id, '复盘结果尚未同步，请检查网络后重试。');
-            toast('复盘结果尚未同步，请检查网络后重试。');
+          } catch (error) {
+            const message = error.volatile ? '复盘结果尚未同步，仅保留在当前页面；请勿刷新，联网后重试。' : '复盘结果尚未同步，请检查网络后重试。';
+            errors.set(id, message);
+            toast(message);
             if (selected?.id === id) showReport();
           }
         }
@@ -245,8 +250,10 @@ export function initNotebook(snapshot, toast) {
     try {
       el('save-form').querySelector('[type=submit]').disabled = true;
       await store.save(entry);
-    } catch {
-      el('save-info').textContent = '尚未同步到账号，请检查网络后重试；若另一设备已修改，请刷新后再保存。';
+    } catch (error) {
+      el('save-info').textContent = error.volatile
+        ? '尚未同步，数据仅保留在当前页面；请勿刷新，检查网络后重试。'
+        : '尚未同步到账号，请检查网络后重试；若另一设备已修改，请刷新后再保存。';
       return;
     } finally {
       el('save-form').querySelector('[type=submit]').disabled = false;
@@ -261,6 +268,9 @@ export function initNotebook(snapshot, toast) {
   el('record-copy').addEventListener('click', () => {
     if (selected) void copyPgn(study.line.game, { ...selected, result: selected.result.pgn }, toast);
   });
+  el('record-download').addEventListener('click', () => {
+    if (selected) downloadPgn(study.line.game, { ...selected, result: selected.result.pgn }, toast);
+  });
   el('record-analyze').addEventListener('click', analyze);
   el('report-cancel').addEventListener('click', () => {
     const job = selected && jobs.get(selected.id);
@@ -272,5 +282,5 @@ export function initNotebook(snapshot, toast) {
   });
   // Start the one-time local import on site entry, even before opening the notebook.
   void refresh();
-  return { refresh };
+  return { refresh, isSaved: (id, moves) => records.some(record => record.id === id && lineKey(record) === moves.join(' ')) };
 }
